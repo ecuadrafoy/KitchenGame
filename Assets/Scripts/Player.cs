@@ -1,12 +1,48 @@
+using System;
+using UnityEditor.MPE;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IKitchenObjectParent
 {
+
+    public static Player Instance { get; private set; }
+    public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
+    public class OnSelectedCounterChangedEventArgs : EventArgs
+    {
+        public ClearCounter selectedCounter;
+    }
     [SerializeField] float moveSpeed = 7f;
     [SerializeField] GameInput gameInput;
     [SerializeField] private LayerMask countersLayerMask;
+    [SerializeField] private Transform kitchenObjectHoldPoint;
     private bool isWalking;
     private Vector3 lastInteractDir;
+    private ClearCounter selectedCounter;
+
+    private KitchenObject kitchenObject;
+    private void Awake()
+    {
+        if (Instance != null)
+        {
+            Debug.LogError("There is more than one Playerinstance");
+        }
+        Instance = this;
+    }
+
+    private void Start()
+    {
+        gameInput.OnInteractAction += GameInput_OnInteractAction;
+    }
+
+    private void GameInput_OnInteractAction(object sender, EventArgs e)
+    {
+        if (selectedCounter != null)
+        {
+            selectedCounter.Interact(this);
+        }
+
+    }
+
     private void Update()
     {
         HandleMovement();
@@ -33,14 +69,21 @@ public class Player : MonoBehaviour
             if (raycastHit.transform.TryGetComponent(out ClearCounter clearCounter))
             {
                 //has clearcounter
-                clearCounter.Interact();
+                if (clearCounter != selectedCounter)
+                {
+                    SetSelectedCounter(clearCounter);
+                }
             }
-
+            else
+            {
+                SetSelectedCounter(null);
+            }
         }
         else
         {
-            Debug.Log("-");
+            SetSelectedCounter(null);
         }
+        ;
     }
 
     private void HandleMovement()
@@ -88,5 +131,37 @@ public class Player : MonoBehaviour
         // transform.position = transform.position + inputVector -- same thing as +=
         float rotateSpeed = 10f;
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
+
+    }
+    private void SetSelectedCounter(ClearCounter selectedCounter)
+    {
+        this.selectedCounter = selectedCounter;
+        OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangedEventArgs
+        {
+            selectedCounter = selectedCounter
+        });
+    }
+
+    public Transform GetKitchenObjectFollowTransform()
+    {
+        return kitchenObjectHoldPoint;
+    }
+
+    public void SetKitchenObject(KitchenObject kitchenObject)
+    {
+        this.kitchenObject = kitchenObject;
+    }
+
+    public KitchenObject GetKitchenObject()
+    {
+        return kitchenObject;
+    }
+    public void ClearKitchenObject()
+    {
+        kitchenObject = null;
+    }
+    public bool HasKitchenObject()
+    {
+        return kitchenObject != null;
     }
 }
