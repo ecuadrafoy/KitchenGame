@@ -1,0 +1,61 @@
+using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class OptionsUI : MonoBehaviour
+{
+    public static OptionsUI Instance { get; private set; }
+    [SerializeField] Button soundEffectsButton;
+    [SerializeField] Button musicButton;
+    [SerializeField] TextMeshProUGUI soundEffectsText;
+    [SerializeField] TextMeshProUGUI musicText;
+    [SerializeField] Button closeButton;
+
+
+    void Awake()
+    {
+        soundEffectsButton.onClick.AddListener(() =>
+        {
+            SoundManager.Instance.ChangeVolume();
+            UpdateVisual();
+        });
+        musicButton.onClick.AddListener(() =>
+        {
+            MusicManager.Instance.ChangeVolume();
+            UpdateVisual();
+        });
+        closeButton.onClick.AddListener(() =>
+        {
+            Hide();
+        });
+        Instance = this;
+    }
+
+    void Start()
+    {
+        KitchenGameManager.Instance.OnGameUnpaused += KitchenGameManager_OnGameUnpaused;
+        UpdateVisual();
+        Hide();
+    }
+
+    private void KitchenGameManager_OnGameUnpaused(object sender, EventArgs e)
+    {
+        Hide();
+    }
+
+    private void UpdateVisual()
+    {
+        soundEffectsText.text = "Sound Effects: " + Mathf.Round(SoundManager.Instance.GetVolume() * 10f);
+        musicText.text = "Music: " + Mathf.Round(MusicManager.Instance.GetVolume() * 10f);
+    }
+
+    public void Show()
+    {
+        gameObject.SetActive(true);
+    }
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+}
