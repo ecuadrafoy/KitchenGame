@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 2124008566169ee43953858cb14066a2, type: 2}
   output: {fileID: 11400000, guid: 0d58ff9e73d735c418296f38323f917d, type: 2}
-  burningTimerMax: 5
+  burningTimerMax: 6
